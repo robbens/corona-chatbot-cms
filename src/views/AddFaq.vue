@@ -1,51 +1,77 @@
 <template>
-  <form class="faq-action-bar" @submit.prevent="triggerAddFaqAction">
-    <h1>Create new FAQ</h1>
+  <div class="page-wrapper">
+    <form class="faq-action-bar" @submit.prevent="create">
+      <h1>Create new FAQ</h1>
 
-    <BaseField>
-      <BaseInput
-        placeholder="Question"
-        :value="faqToCreate.question"
-        @input="setFaqToCreate({ question: $event.target.value })"
-      />
-    </BaseField>
+      <BaseField label="Status">
+        <BaseSelect
+          :transparent="false"
+          :expanded="true"
+          :border="true"
+          :value="faqToCreate.status"
+          required
+          @input="setFaqToCreate({ status: $event.target.value })"
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </BaseSelect>
+      </BaseField>
 
-    <BaseField>
-      <BaseTextarea
-        v-autoheight
-        placeholder="Answer"
-        rows="4"
-        :value="faqToCreate.answer"
-        @input="setFaqToCreate({ answer: $event.target.value })"
-      />
-    </BaseField>
+      <BaseField label="Question">
+        <BaseInput
+          placeholder=""
+          :value="faqToCreate.question"
+          @input="setFaqToCreate({ question: $event.target.value })"
+        />
+      </BaseField>
 
-    <BaseField>
-      <BaseSelect
-        label="Status"
-        :transparent="false"
-        :expanded="true"
-        :border="true"
-        :value="faqToCreate.status"
-        required
-        @input="setFaqToCreate({ status: $event.target.value })"
+      <h4>Alternate question formulations</h4>
+
+      <BaseField
+        v-for="(item, index) in questionFormulations"
+        :key="item.id || index"
+        style="display: flex;"
       >
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </BaseSelect>
-    </BaseField>
+        <BaseInput
+          v-model="item.formulation"
+          :placeholder="'Formulation ' + (index + 1)"
+        />
 
-    <BaseField>
-      <BaseButton
-        expanded
-        type="primary"
-        :disabled="faqCreationPending"
-        @click="triggerAddFaqAction"
-      >
-        Add faq
-      </BaseButton>
-    </BaseField>
-  </form>
+        <BaseButton
+          type="danger"
+          @click.prevent="questionFormulations.splice(questionFormulations.indexOf(item), 1)"
+        >
+          x
+        </BaseButton>
+      </BaseField>
+
+      <BaseField>
+        <BaseButton @click.prevent="questionFormulations.push({ question: '' })">
+          Add formulation
+        </BaseButton>
+      </BaseField>
+
+      <BaseField label="Answer">
+        <BaseTextarea
+          v-autoheight
+          placeholder=""
+          :rows="4"
+          :value="faqToCreate.answer"
+          @input="setFaqToCreate({ answer: $event.target.value })"
+        />
+      </BaseField>
+
+      <BaseField>
+        <BaseButton
+          expanded
+          type="primary"
+          :disabled="faqCreationPending"
+        >
+          Create FAQ
+        </BaseButton>
+      </BaseField>
+    </form>
+  </div>
 </template>
 
 <script>
@@ -54,14 +80,32 @@ import BaseButton from '../components/Core/Button.vue'
 import BaseSelect from '../components/Core/Select.vue'
 import BaseField from '../components/Core/Field.vue'
 import BaseTextarea from '../components/Core/Textarea.vue'
-import BaseInput from "../components/Core/Input.vue";
+import BaseInput from '../components/Core/Input.vue'
+import FaqQuestionFormulationsDB from '../firebase/faqQuestionFormulations-db'
 
 export default {
-  components: {BaseInput, BaseTextarea, BaseField, BaseSelect, BaseButton },
+  components: { BaseInput, BaseTextarea, BaseField, BaseSelect, BaseButton },
+  data() {
+    return {
+      questionFormulations: []
+    }
+  },
   computed: mapState('faqs', ['faqToCreate', 'faqCreationPending']),
   methods: {
     ...mapMutations('faqs', ['setFaqToCreate']),
-    ...mapActions('faqs', ['triggerAddFaqAction'])
+    ...mapActions('faqs', ['triggerAddFaqAction']),
+    async create() {
+      const res = await this.triggerAddFaqAction()
+
+      this.questionFormulations.forEach(formulation => {
+        new FaqQuestionFormulationsDB().create({
+          faqId: res.id,
+          ...formulation
+        })
+      })
+
+      await this.$router.push({ name: 'faqs' })
+    },
   }
 }
 </script>

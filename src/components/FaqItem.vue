@@ -8,6 +8,14 @@
     </router-link>
     <div
       v-if="!disableActions"
+      class="edit-btn"
+      style="margin-left: auto;"
+      @click="$router.push({ name: 'faq.edit', params: { id: data.id } })"
+    >
+      Edit
+    </div>
+    <div
+      v-if="!disableActions"
       class="delete-btn"
       @click="$emit('deleteFaq', data.id)"
     >

@@ -21,17 +21,26 @@ export default {
     const createdFaq = await faqsDb.create(faq)
     commit('addFaq', createdFaq)
     commit('setFaqCreationPending', false)
+    return createdFaq
+  },
+
+  updateFaq: async (foo, faq) => {
+    const faqsDb = new FaqsDB()
+
+    const updatedFaq = await faqsDb.update(faq)
+    return updatedFaq
   },
 
   /**
    * Create a new faq and reset faq object
    */
-  triggerAddFaqAction: ({ dispatch, state, commit }) => {
+  triggerAddFaqAction: async ({ dispatch, state, commit }) => {
     if (state.faqToCreate === {}) return
 
     const faq = state.faqToCreate
     commit('setFaqToCreate', {})
-    dispatch('createFaq', faq)
+    // eslint-disable-next-line consistent-return
+    return dispatch('createFaq', faq)
   },
 
   /**

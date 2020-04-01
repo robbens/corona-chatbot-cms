@@ -65,6 +65,13 @@ const router = new Router({
         import(/* webpackChunkName: "client-chunk-product-details" */ '@/views/Faq.vue')
     },
     {
+      path: '/faqs/:id/edit',
+      name: 'faq.edit',
+      props: true,
+      component: () =>
+          import(/* webpackChunkName: "client-chunk-product-details" */ '@/views/FaqEdit.vue')
+    },
+    {
       path: '/suggestions',
       name: 'suggestions',
       component: () =>
